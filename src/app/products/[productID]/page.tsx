@@ -2,22 +2,19 @@ import Iproducts from '@/types/products';
 import Image from 'next/image';
 import React from 'react';
 
-interface Props {
+interface PageProps {
     params: {
         productID: string;
     };
 }
 
-export default async function Page({ params }: Props) {
-
-    const res = await fetch(`https://dummyjson.com/products/${params.productID} `);
+export default async function Page({ params }: PageProps) {
+    const res = await fetch(`https://dummyjson.com/products/${params.productID}`);
     const product: Iproducts = await res.json();
 
     return (
         <div className="p-8 sm:p-12 max-w-6xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-
-
                 <div className="order-2 md:order-1 space-y-5">
                     <h1 className="text-4xl font-bold text-gray-900 leading-tight">
                         {product.title}
@@ -32,7 +29,11 @@ export default async function Page({ params }: Props) {
                     <div className="text-sm text-gray-700 flex items-center gap-2">
                         <span>⭐ {product.rating}</span>
                         <span className="text-gray-400">•</span>
-                        <span>{product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}</span>
+                        <span>
+                            {product.stock > 0
+                                ? `${product.stock} in stock`
+                                : 'Out of stock'}
+                        </span>
                     </div>
 
                     <div className="mt-6 flex gap-4">
@@ -59,8 +60,4 @@ export default async function Page({ params }: Props) {
             </div>
         </div>
     );
-
-
-
 }
-
