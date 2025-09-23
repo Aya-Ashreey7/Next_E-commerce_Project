@@ -36,8 +36,9 @@ export async function POST(request: NextRequest) {
 
         addUser(newUser);
 
-        // Return user without password
-        const { password: _, ...userWithoutPassword } = newUser;
+        // ✅ Return user without password (no ESLint error)
+        const { id, name: userName, email: userEmail } = newUser;
+        const userWithoutPassword = { id, name: userName, email: userEmail };
 
         return NextResponse.json(
             { message: "User created successfully", user: userWithoutPassword },
@@ -50,4 +51,4 @@ export async function POST(request: NextRequest) {
             { status: 500 }
         );
     }
-} 
+}

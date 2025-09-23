@@ -2,6 +2,8 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { JWT } from "next-auth/jwt";   // ✅ import JWT type
+import { Session } from "next-auth";
 
 export const authConfig = {
     providers: [
@@ -25,7 +27,7 @@ export const authConfig = {
                 }
 
                 try {
-                   
+
                     const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
                     const response = await fetch(`${baseUrl}/api/auth/validate`, {
                         method: 'POST',
@@ -54,22 +56,38 @@ export const authConfig = {
         signIn: '/signIn',
     },
     callbacks: {
-        async jwt({ token, user }: { token: any; user: any }) {
-            if (user) {
-                token.id = user.id;
-                token.name = user.name;
-                token.email = user.email;
+        // async jwt({ token, user }: { token: any; user: any }) {
+        //     if (user) {
+        //         token.id = user.id;
+        //         token.name = user.name;
+        //         token.email = user.email;
+        //     }
+        //     return token;
+        // },
+        async jwt({ token, user }: { token: JWT; user?: unknown }) {
+            if (user && typeof user === "object" && "id" in user) {
+                token.id = (user as { id: string }).id;
+                token.name = (user as { name?: string }).name;
+                token.email = (user as { email?: string }).email;
             }
             return token;
         },
-        async session({ session, token }: { session: any; token: any }) {
-            if (token) {
-                session.user.id = token.id as string;
-                session.user.name = token.name as string;
-                session.user.email = token.email as string;
+        // async session({ session, token }: { session: any; token: any }) {
+        //     if (token) {
+        //         session.user.id = token.id as string;
+        //         session.user.name = token.name as string;
+        //         session.user.email = token.email as string;
+        //     }
+        //     return session;
+        // },
+        async session({ session, token }: { session: Session; token: JWT }) {
+            if (session.user && token) {
+                (session.user as { id?: string }).id = token.id as string;
+                session.user.name = token.name ?? null;
+                session.user.email = token.email ?? null;
             }
             return session;
-        },
+        }
     },
 }
 
