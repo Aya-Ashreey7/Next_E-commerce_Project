@@ -3,13 +3,14 @@ import Image from 'next/image';
 import React from 'react';
 
 interface PageProps {
-    params: {
+    params: Promise<{
         productID: string;
-    };
+    }>;
 }
 
 export default async function Page({ params }: PageProps) {
-    const res = await fetch(`https://dummyjson.com/products/${params.productID}`);
+    const { productID } = await params;
+    const res = await fetch(`https://dummyjson.com/products/${productID}`);
     const product: Iproducts = await res.json();
 
     return (

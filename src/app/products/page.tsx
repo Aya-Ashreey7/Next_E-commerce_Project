@@ -6,8 +6,12 @@ import Filter from "@/components/filter";
 export const revalidate = 20
 
 
-export default async function Products({ searchParams }: { searchParams: { category?: string } }) {
-
+export default async function Products({
+    searchParams,
+}: {
+    searchParams: Promise<{ category?: string }>;
+}) {
+    const resolvedSearchParams = await searchParams;
 
     return (
 
@@ -19,7 +23,7 @@ export default async function Products({ searchParams }: { searchParams: { categ
             <Filter />
 
             <Suspense fallback={<Loading />} >
-                <FetchedProducts searchParams={searchParams} />
+                <FetchedProducts searchParams={resolvedSearchParams} />
 
             </Suspense>
 
