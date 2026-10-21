@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NextShop
 
-## Getting Started
+NextShop is a Next.js e-commerce storefront. Browse products, filter by category, view product details, and add items to a cart. Sign-in is required before checkout.
 
-First, run the development server:
+**Live site:** [https://next-e-commerce-project-6xn9.vercel.app/](https://next-e-commerce-project-6xn9.vercel.app/)
+
+**Repository:** [https://github.com/Aya-Ashreey7/Next_E-commerce_Project](https://github.com/Aya-Ashreey7/Next_E-commerce_Project)
+
+## Features
+
+- Home, product catalog, category list, and product detail pages
+- Category filter on the products page
+- Shopping cart with quantity updates
+- Checkout flow for signed-in users
+- Email and password sign-up and sign-in, plus Google and Facebook sign-in
+- Cart and checkout routes are protected
+
+Product data comes from the [DummyJSON](https://dummyjson.com) products API.
+
+## Tech stack
+
+- [Next.js](https://nextjs.org) 15 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- [NextAuth.js](https://authjs.dev) v5
+
+## Getting started
+
+Install dependencies and start the dev server:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create a `.env.local` file for authentication:
 
-## Learn More
+```bash
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-secret
 
-To learn more about Next.js, take a look at the following resources:
+AUTH_GOOGLE_ID=your-google-client-id
+AUTH_GOOGLE_SECRET=your-google-client-secret
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+AUTH_FACEBOOK_ID=your-facebook-client-id
+AUTH_FACEBOOK_SECRET=your-facebook-client-secret
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Google and Facebook sign-in need those provider values. Email and password sign-in works without them.
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Create a production build |
+| `npm run start` | Run the production server |
+| `npm run lint` | Run ESLint |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy
+
+The app is deployed on Vercel:
+
+[https://next-e-commerce-project-6xn9.vercel.app/](https://next-e-commerce-project-6xn9.vercel.app/)
