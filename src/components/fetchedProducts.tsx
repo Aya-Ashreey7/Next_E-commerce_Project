@@ -1,38 +1,35 @@
+import Iproducts from "@/types/products";
+import ProductCard from "./productCard";
+import { getProducts, getProductsByCategory } from "@/lib/catalog";
+import { formatCategory } from "@/lib/format";
 
+export default async function FetchedProducts({
+  searchParams,
+}: {
+  searchParams: { category?: string };
+}) {
+  const category = searchParams.category;
+  const products: Iproducts[] =
+    category && category !== "all"
+      ? await getProductsByCategory(category)
+      : await getProducts();
 
-import Iproducts from '@/types/products';
-import React from 'react';
-import ProductCard from './productCard';
-
-export default async function FetchedProducts({ searchParams }: { searchParams: { category?: string } }) {
-
-    const res = await fetch("https://dummyjson.com/products");
-    const data = await res.json();
-    let products: Iproducts[] = data.products;
-
-    const category = searchParams.category;
-    if (category && category !== "all") {
-        products = products.filter(
-            (product) => product.category.toLowerCase() === category.toLowerCase()
-        );
-    }
-
+  if (products.length === 0) {
     return (
-        <div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {products.map((pro: Iproducts) => (
-                    <div
-                        key={pro.id}
-                        className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col"
-                    >
-
-                        <ProductCard pro={pro} />
-
-                    </div>
-                ))}
-            </div>
-        </div>
+      <div className="rounded-2xl border border-dashed border-line bg-white px-6 py-16 text-center">
+        <p className="font-display text-2xl">Nothing in this category yet</p>
+        <p className="mt-2 text-sm text-muted">
+          {category ? `No products matched ${formatCategory(category)}.` : "The catalog is unavailable right now."}
+        </p>
+      </div>
     );
-}
+  }
 
-;
+  return (
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {products.map((product) => (
+        <ProductCard key={product.id} pro={product} />
+      ))}
+    </div>
+  );
+}

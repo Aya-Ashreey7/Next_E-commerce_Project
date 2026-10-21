@@ -1,40 +1,24 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
-
-interface Props {
-  error: Error;
-}
-
-export default function Error({ error }: Props) {
-  const router = useRouter();
-
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full text-center">
-        <h1 className="text-3xl font-bold text-red-600 mb-4">Oops! Something went wrong</h1>
-
-        <p className="text-gray-600 mb-6">
-          {error.message || 'An unexpected error occurred.'}
-        </p>
-
-        <div className="flex justify-center gap-4">
-          <button
-            onClick={() => router.back()}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl transition"
-          >
-            Go Back
-          </button>
-
-          <button
-            onClick={() => router.push('/')}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl transition"
-          >
-            Go Home
-          </button>
-        </div>
-      </div>
+    <div className="mx-auto max-w-xl px-5 py-24 text-center">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brass">Something stalled</p>
+      <h1 className="mt-3 font-display text-4xl">We could not load this page.</h1>
+      <p className="mt-4 text-sm leading-6 text-muted">{error.message || "Please try again."}</p>
+      <button
+        type="button"
+        onClick={() => reset()}
+        className="mt-8 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white"
+      >
+        Try again
+      </button>
     </div>
   );
 }

@@ -41,8 +41,8 @@ Open [http://localhost:3000](http://localhost:3000).
 Create a `.env.local` file for authentication:
 
 ```bash
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret
+AUTH_SECRET=your-secret
+AUTH_URL=http://localhost:3000
 
 AUTH_GOOGLE_ID=your-google-client-id
 AUTH_GOOGLE_SECRET=your-google-client-secret
@@ -51,7 +51,7 @@ AUTH_FACEBOOK_ID=your-facebook-client-id
 AUTH_FACEBOOK_SECRET=your-facebook-client-secret
 ```
 
-Google and Facebook sign-in need those provider values. Email and password sign-in works without them.
+`AUTH_SECRET` is required locally and in the Vercel project settings. Without it, sign-in fails with a missing-secret error. Google and Facebook buttons appear only when those provider values are set. Email and password sign-in works without them.
 
 ## Scripts
 

@@ -1,38 +1,24 @@
-import React from 'react';
-
-interface Iproducts {
-    category: string
-}
-
+import Link from "next/link";
+import { getCategories } from "@/lib/catalog";
 
 export default async function SideBar() {
-    const res = await fetch('https://dummyjson.com/products');
-    const data = await res.json();
-    const products: Iproducts[] = data.products;
+  const categories = await getCategories();
 
-    const categorySet = new Set(products.map((p) => p.category));
-    const categories = Array.from(categorySet);
-    return (
-        <div>
-
-            <aside className="w-64 bg-gray-100 p-6 border-r border-gray-300 min-h-screen p-7">
-                <h2 className="text-xl font-bold mb-4 text-gray-800">Categories</h2>
-                <ul className="space-y-2">
-                    {categories.map((cat) => (
-                        <li key={cat}>
-                            <a
-                                href={`/products/${cat}`}
-                                className="block px-4 py-2 rounded hover:bg-purple-100 text-gray-700 font-medium hover:text-purple-700 transition"
-                            >
-                                {cat}
-                            </a>
-                        </li>
-                    ))}
-                </ul>
-            </aside>
-
-
-        </div>
-    );
+  return (
+    <aside className="w-full border-b border-line bg-white p-6 lg:w-64 lg:border-b-0 lg:border-r">
+      <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-brass">Categories</h2>
+      <ul className="mt-4 space-y-1">
+        {categories.map((category) => (
+          <li key={category.slug}>
+            <Link
+              href={`/products?category=${encodeURIComponent(category.slug)}`}
+              className="block rounded-lg px-3 py-2 text-sm text-ink hover:bg-paper"
+            >
+              {category.name}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  );
 }
-

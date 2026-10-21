@@ -1,76 +1,79 @@
 "use client";
-import React from 'react';
+
 import Image from "next/image";
-import { FaStar, FaShoppingCart, FaHeart } from "react-icons/fa";
-import Iproducts from '@/types/products';
-import Link from 'next/link';
-import { useCart } from './CartContext';
-import { useToast } from './ToastContext';
+import Link from "next/link";
+import { FaHeart, FaRegHeart, FaStar } from "react-icons/fa";
+import Iproducts from "@/types/products";
+import { formatPrice } from "@/lib/format";
+import { useCart } from "./CartContext";
+import { useFavorites } from "./FavoritesContext";
+import { useToast } from "./ToastContext";
 
-interface IProps {
-    pro: Iproducts
-}
+export default function ProductCard({ pro }: { pro: Iproducts }) {
+  const { addToCart } = useCart();
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const { showToast } = useToast();
+  const saved = isFavorite(pro.id);
+  const image = pro.images?.[0];
 
-export default function ProductCard({ pro }: IProps) {
-    const { addToCart } = useCart();
-    const { showToast } = useToast();
+  return (
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-card">
+      <div className="relative aspect-[4/5] overflow-hidden bg-paper">
+        <Link href={`/products/${pro.id}`} className="absolute inset-0">
+          {image ? (
+            <Image
+              src={image}
+              alt={pro.title}
+              fill
+              sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+              className="object-cover transition duration-500 group-hover:scale-105"
+            />
+          ) : null}
+        </Link>
+        {pro.discountPercentage > 0 && (
+          <span className="absolute left-3 top-3 rounded-full bg-ink px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+            {Math.round(pro.discountPercentage)}% off
+          </span>
+        )}
+        <button
+          type="button"
+          aria-label={saved ? `Remove ${pro.title} from favorites` : `Save ${pro.title} to favorites`}
+          aria-pressed={saved}
+          onClick={() => {
+            const nowSaved = toggleFavorite(pro);
+            showToast(nowSaved ? "Saved to favorites" : "Removed from favorites");
+          }}
+          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-ink shadow-sm transition hover:scale-105"
+        >
+          {saved ? <FaHeart className="text-accent" /> : <FaRegHeart />}
+        </button>
+      </div>
 
-    const handleAddToCart = () => {
-        addToCart(pro);
-        showToast(`${pro.title} added to cart!`);
-    };
-
-    return (
-        <div>
-            <div className="relative overflow-hidden rounded-t-2xl">
-                <Image
-                    src={pro.images[0]}
-                    width={400}
-                    height={300}
-                    alt={pro.title}
-                    className="object-cover w-full h-90 hover:scale-105 transition-transform duration-300"
-                />
-                <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
-                    -{Math.round(pro.discountPercentage)}%
-                </span>
-            </div>
-            <div className="p-5 flex-1 flex flex-col justify-between">
-                <h2 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-2">{pro.title}</h2>
-                <p className="text-sm text-gray-500 mb-2 line-clamp-2">{pro.description}</p>
-                <div className="flex items-center justify-between mt-auto">
-                    <span className="text-purple-600 text-lg font-bold">${pro.price}</span>
-                    <span className="flex items-center text-yellow-500 text-sm">
-                        <FaStar className="mr-1" /> {pro.rating}
-                    </span>
-                </div>
-                <Link
-                    href={`/products/${pro.id}`}
-                    className="mt-4 inline-block text-center text-sm font-semibold bg-purple-600 text-white px-4 py-2 rounded-xl hover:bg-purple-700 transition"
-                >
-                    View Details
-                </Link>
-                <div className="mt-4 flex justify-between items-center">
-                    <span
-                        className={`text-xs px-3 py-1 rounded-full font-semibold ${pro.stock > 0
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                            }`}
-                    >
-                        {pro.stock > 0 ? `${pro.stock} in stock` : "Out of stock"}
-                    </span>
-                    <div className="flex gap-2">
-                        <button
-                            className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition"
-                            onClick={handleAddToCart}
-                        >
-                            <FaShoppingCart />
-                        </button>
-                        <button className="p-2 bg-gray-100 text-gray-500 rounded-full hover:bg-gray-200">
-                            <FaHeart />
-                        </button>
-                    </div>
-                </div>
-            </div>
+      <div className="flex flex-1 flex-col p-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brass">
+          {pro.category.replace(/-/g, " ")}
+        </p>
+        <Link href={`/products/${pro.id}`} className="mt-1 line-clamp-2 font-medium text-ink hover:text-accent">
+          {pro.title}
+        </Link>
+        <div className="mt-2 flex items-center justify-between text-sm">
+          <span className="font-semibold">{formatPrice(pro.price)}</span>
+          <span className="flex items-center gap-1 text-muted">
+            <FaStar className="text-brass" />
+            {pro.rating}
+          </span>
         </div>
-    );
+        <button
+          type="button"
+          onClick={() => {
+            addToCart(pro);
+            showToast("Added to cart");
+          }}
+          className="mt-4 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent"
+        >
+          Add to cart
+        </button>
+      </div>
+    </article>
+  );
 }

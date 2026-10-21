@@ -1,64 +1,65 @@
-import Iproducts from '@/types/products';
-import Image from 'next/image';
-import React from 'react';
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import ProductActions from "@/components/productActions";
+import Iproducts from "@/types/products";
+import { formatCategory, formatPrice } from "@/lib/format";
 
 interface PageProps {
-    params: Promise<{
-        productID: string;
-    }>;
+  params: Promise<{
+    productID: string;
+  }>;
 }
 
 export default async function Page({ params }: PageProps) {
-    const { productID } = await params;
-    const res = await fetch(`https://dummyjson.com/products/${productID}`);
-    const product: Iproducts = await res.json();
+  const { productID } = await params;
+  const res = await fetch(`https://dummyjson.com/products/${productID}`, {
+    next: { revalidate: 120 },
+  });
 
-    return (
-        <div className="p-8 sm:p-12 max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-                <div className="order-2 md:order-1 space-y-5">
-                    <h1 className="text-4xl font-bold text-gray-900 leading-tight">
-                        {product.title}
-                    </h1>
+  if (!res.ok) notFound();
 
-                    <p className="text-gray-600 text-base">{product.description}</p>
+  const product: Iproducts = await res.json();
+  if (!product?.id) notFound();
 
-                    <div className="text-purple-600 text-3xl font-extrabold">
-                        ${product.price}
-                    </div>
+  const image = product.images?.[0];
 
-                    <div className="text-sm text-gray-700 flex items-center gap-2">
-                        <span>⭐ {product.rating}</span>
-                        <span className="text-gray-400">•</span>
-                        <span>
-                            {product.stock > 0
-                                ? `${product.stock} in stock`
-                                : 'Out of stock'}
-                        </span>
-                    </div>
-
-                    <div className="mt-6 flex gap-4">
-                        <button className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2 rounded-xl shadow-md transition">
-                            Add to Cart
-                        </button>
-                        <button className="border border-gray-300 hover:bg-gray-100 text-gray-700 px-6 py-2 rounded-xl transition">
-                            Wishlist
-                        </button>
-                    </div>
-                </div>
-
-                <div className="order-1 md:order-2">
-                    <div className="relative w-full overflow-hidden rounded-xl shadow-xl">
-                        <Image
-                            src={product.images[0]}
-                            alt={product.title}
-                            width={600}
-                            height={600}
-                            className="object-cover w-full h-auto hover:scale-105 transition-transform duration-300"
-                        />
-                    </div>
-                </div>
-            </div>
+  return (
+    <div className="mx-auto max-w-6xl px-5 py-10">
+      <Link href="/products" className="text-sm font-semibold text-muted hover:text-ink">
+        Back to shop
+      </Link>
+      <div className="mt-6 grid items-start gap-10 lg:grid-cols-2">
+        <div className="relative aspect-square overflow-hidden rounded-[2rem] bg-white">
+          {image && (
+            <Image
+              src={image}
+              alt={product.title}
+              fill
+              priority
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover"
+            />
+          )}
         </div>
-    );
+
+        <div className="lg:py-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brass">
+            <Link href={`/products?category=${encodeURIComponent(product.category)}`} className="hover:text-ink">
+              {formatCategory(product.category)}
+            </Link>
+          </p>
+          <h1 className="mt-3 font-display text-4xl leading-tight sm:text-5xl">{product.title}</h1>
+          <p className="mt-5 max-w-prose text-base leading-7 text-muted">{product.description}</p>
+          <p className="mt-6 font-display text-4xl">{formatPrice(product.price)}</p>
+          <p className="mt-3 text-sm text-muted">
+            Rated {product.rating} · {product.stock > 0 ? `${product.stock} in stock` : "Out of stock"}
+          </p>
+          <div className="mt-8">
+            <ProductActions product={product} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

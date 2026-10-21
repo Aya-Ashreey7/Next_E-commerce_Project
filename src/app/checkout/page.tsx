@@ -1,128 +1,147 @@
 "use client";
-import React, { useState } from "react";
-import { useCart } from "@/components/CartContext";
+
 import Image from "next/image";
-import Iproducts from "@/types/products";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
-interface CartProduct extends Iproducts {
-  qty: number;
-}
+import { FormEvent, useEffect, useState } from "react";
+import { useCart } from "@/components/CartContext";
+import { formatPrice } from "@/lib/format";
 
 export default function CheckoutPage() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const { cart } = useCart();
+  const { lines, total, clearCart } = useCart();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
-  const [success, setSuccess] = useState("");
-
+  const [placed, setPlaced] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.replace("/signin");
+      router.replace("/signin?callbackUrl=/checkout");
     }
   }, [status, router]);
 
+  useEffect(() => {
+    if (session?.user) {
+      setName(session.user.name ?? "");
+      setEmail(session.user.email ?? "");
+    }
+  }, [session]);
+
   if (status === "loading") {
-    return <div className="text-center py-20">Checking authentication...</div>;
+    return <p className="px-5 py-20 text-center text-sm text-muted">Checking your account...</p>;
   }
 
-    const grouped: CartProduct[] = cart.reduce((acc: CartProduct[], item) => {
-    const found = acc.find((i) => i.id === item.id);
-    if (found) {
-      found.qty += 1;
-    } else {
-      acc.push({ ...item, qty: 1 });
-    }
-    return acc;
-  }, []);
-
-  const grandTotal = grouped.reduce(
-    (sum, item) => sum + item.price * item.qty,
-    0
-  );
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSuccess("Order placed successfully! Thank you for your purchase.");
-    setName("");
-    setEmail("");
-    setAddress("");
+  const handleSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    clearCart();
+    setPlaced(true);
   };
 
+  if (placed) {
+    return (
+      <div className="mx-auto max-w-xl px-5 py-20 text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brass">Order received</p>
+        <h1 className="mt-3 font-display text-4xl">Thank you, {name.split(" ")[0] || "there"}.</h1>
+        <p className="mt-4 text-sm leading-6 text-muted">
+          This is a demonstration checkout, so no payment was taken. A confirmation would be sent to {email}.
+        </p>
+        <Link href="/products" className="mt-8 inline-flex rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white">
+          Keep browsing
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-2xl mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-6">Checkout</h1>
-      {grouped.length === 0 ? (
-        <p className="text-gray-500">Your cart is empty.</p>
+    <div className="mx-auto max-w-6xl px-5 py-10">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brass">Checkout</p>
+      <h1 className="mt-2 font-display text-4xl">Delivery details</h1>
+
+      {lines.length === 0 ? (
+        <div className="mt-10 rounded-2xl border border-dashed border-line bg-white px-6 py-16 text-center">
+          <p className="font-display text-2xl">Nothing to check out</p>
+          <Link href="/products" className="mt-6 inline-flex rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white">
+            Browse products
+          </Link>
+        </div>
       ) : (
-        <>
-          <ul className="space-y-4 mb-8">
-            {grouped.map((item) => (
-              <li key={item.id} className="flex items-center gap-4 p-4 border rounded-lg bg-white shadow-sm">
-                <Image src={item.images[0]} width={60} height={60} alt={item.title} className="rounded-lg object-cover w-16 h-16" />
-                <div className="flex-1">
-                  <div className="font-semibold text-purple-700">{item.title}</div>
-                  <div className="text-gray-600">${item.price} x {item.qty}</div>
-                  <div className="text-gray-900 font-bold">Total: ${item.price * item.qty}</div>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <div className="mb-8 text-right">
-            <span className="text-xl font-bold text-purple-700">Total Price: ${grandTotal}</span>
-          </div>
-          <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-xl shadow">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-              <input
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 transition"
-                required
-                placeholder="Your Name"
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 transition"
-                required
-                placeholder="you@example.com"
-              />
-            </div>
-            <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+        <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+          <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-line bg-white p-6">
+            <Field label="Name" id="name" value={name} onChange={setName} />
+            <Field label="Email" id="email" type="email" value={email} onChange={setEmail} />
+            <label htmlFor="address" className="block text-sm font-medium">
+              Address
               <textarea
                 id="address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 transition"
                 required
-                placeholder="Your Address"
-                rows={3}
+                rows={4}
+                value={address}
+                onChange={(event) => setAddress(event.target.value)}
+                className="mt-2 w-full rounded-xl border border-line bg-paper px-4 py-3 text-sm outline-none focus:border-accent"
+                placeholder="Street, city, postal code"
               />
-            </div>
-            <button
-              type="submit"
-              className="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-lg shadow-md hover:from-purple-700 hover:to-blue-700 transition-all"
-            >
-              Place Order
+            </label>
+            <button type="submit" className="w-full rounded-full bg-accent py-3 text-sm font-semibold text-white hover:bg-ink">
+              Place order · {formatPrice(total)}
             </button>
-            {success && <div className="text-green-600 text-center font-semibold mt-2">{success}</div>}
           </form>
-        </>
+
+          <aside className="h-fit rounded-2xl border border-line bg-white p-6">
+            <h2 className="font-display text-2xl">Your order</h2>
+            <ul className="mt-4 space-y-4">
+              {lines.map((item) => (
+                <li key={item.id} className="flex gap-3">
+                  <div className="relative h-16 w-16 overflow-hidden rounded-lg bg-paper">
+                    {item.images?.[0] && (
+                      <Image src={item.images[0]} alt="" fill sizes="64px" className="object-cover" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{item.title}</p>
+                    <p className="text-xs text-muted">Qty {item.qty}</p>
+                  </div>
+                  <p className="text-sm font-semibold">{formatPrice(item.price * item.qty)}</p>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
+              <span className="text-sm text-muted">Total</span>
+              <span className="font-display text-2xl">{formatPrice(total)}</span>
+            </div>
+          </aside>
+        </div>
       )}
     </div>
   );
-} 
+}
+
+function Field({
+  label,
+  id,
+  value,
+  onChange,
+  type = "text",
+}: {
+  label: string;
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+}) {
+  return (
+    <label htmlFor={id} className="block text-sm font-medium">
+      {label}
+      <input
+        id={id}
+        type={type}
+        required
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-2 w-full rounded-xl border border-line bg-paper px-4 py-3 text-sm outline-none focus:border-accent"
+      />
+    </label>
+  );
+}

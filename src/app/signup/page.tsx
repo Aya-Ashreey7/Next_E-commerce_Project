@@ -1,141 +1,95 @@
 "use client";
+
 import Link from "next/link";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
+const fieldClass =
+  "mt-2 w-full rounded-xl border border-line bg-white px-4 py-3 text-sm outline-none focus:border-accent";
+
 export default function SignUpPage() {
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError("");
-        setSuccess("");
-        setIsLoading(true);
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    setError("");
+    setIsLoading(true);
 
-        if (!name || !email || !password) {
-            setError("Please fill in all fields.");
-            setIsLoading(false);
-            return;
-        }
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await response.json();
 
-        try {
-            const res = await fetch("/api/auth/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, email, password }),
-            });
+      if (!response.ok) {
+        setError(data.message || "Registration failed.");
+        setIsLoading(false);
+        return;
+      }
 
-            if (!res.ok) {
-                const data = await res.json();
-                setError(data.message || "Registration failed.");
-                setIsLoading(false);
-                return;
-            }
+      router.push("/signin");
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setIsLoading(false);
+    }
+  };
 
-            setSuccess("Registration successful! Please sign in.");
-            setTimeout(() => router.push("/signin"), 1500);
-            setIsLoading(false);
-        } catch {
-            setError("An error occurred. Please try again.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-white to-purple-100">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-                <h2 className="text-3xl font-bold text-center text-blue-700 mb-8">
-                    Register
-                </h2>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label
-                            htmlFor="name"
-                            className="block text-sm font-medium text-gray-700 mb-1"
-                        >
-                            Name
-                        </label>
-                        <input
-                            id="name"
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-                            required
-                            autoComplete="name"
-                            placeholder="Your Name"
-                            disabled={isLoading}
-                        />
-                    </div>
-                    <div>
-                        <label
-                            htmlFor="email"
-                            className="block text-sm font-medium text-gray-700 mb-1"
-                        >
-                            Email
-                        </label>
-                        <input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-                            required
-                            autoComplete="email"
-                            placeholder="you@example.com"
-                            disabled={isLoading}
-                        />
-                    </div>
-                    <div>
-                        <label
-                            htmlFor="password"
-                            className="block text-sm font-medium text-gray-700 mb-1"
-                        >
-                            Password
-                        </label>
-                        <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-                            required
-                            autoComplete="new-password"
-                            placeholder="••••••••"
-                            disabled={isLoading}
-                        />
-                    </div>
-                    {error && (
-                        <div className="text-red-600 text-sm text-center">{error}</div>
-                    )}
-                    {success && (
-                        <div className="text-green-600 text-sm text-center">{success}</div>
-                    )}
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-md hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50"
-                    >
-                        {isLoading ? "Creating account..." : "Register"}
-                    </button>
-                </form>
-                <div className="mt-6 text-center text-sm text-gray-500">
-                    Already have an account?
-                    <Link
-                        href="/signin"
-                        className="text-blue-600 hover:underline font-medium"
-                    >
-                        Sign In
-                    </Link>
-                </div>
-            </div>
-        </div>
-    );
+  return (
+    <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-14 lg:grid-cols-2">
+      <div className="hidden lg:block">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brass">Join NextShop</p>
+        <h1 className="mt-3 font-display text-5xl leading-tight">Create your account.</h1>
+        <p className="mt-4 max-w-md text-sm leading-6 text-muted">
+          An account lets you keep a private cart and place an order. Use any email you like for this demo shop.
+        </p>
+      </div>
+      <div className="rounded-[2rem] border border-line bg-white p-6 sm:p-8">
+        <h2 className="font-display text-3xl">Sign up</h2>
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <label htmlFor="name" className="block text-sm font-medium">
+            Name
+            <input id="name" required value={name} onChange={(event) => setName(event.target.value)} className={fieldClass} />
+          </label>
+          <label htmlFor="email" className="block text-sm font-medium">
+            Email
+            <input id="email" type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className={fieldClass} />
+          </label>
+          <label htmlFor="password" className="block text-sm font-medium">
+            Password
+            <input
+              id="password"
+              type="password"
+              required
+              minLength={6}
+              autoComplete="new-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className={fieldClass}
+            />
+          </label>
+          {error && <p className="text-sm text-red-700">{error}</p>}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full rounded-full bg-accent py-3 text-sm font-semibold text-white hover:bg-ink disabled:opacity-60"
+          >
+            {isLoading ? "Creating account..." : "Create account"}
+          </button>
+        </form>
+        <p className="mt-6 text-center text-sm text-muted">
+          Already registered?{" "}
+          <Link href="/signin" className="font-semibold text-ink">
+            Sign in
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
 }

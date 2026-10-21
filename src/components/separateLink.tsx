@@ -1,35 +1,41 @@
-'use client'
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import React from 'react';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 const navItems = [
-    { name: "Home", href: "/" },
-    { name: "Products", href: "/products" },
-    { name: "Categories", href: "/category" },
-]
+  { name: "Home", href: "/" },
+  { name: "Shop", href: "/products" },
+  { name: "Categories", href: "/category" },
+  { name: "Favorites", href: "/favorites" },
+];
 
-const SeparateLink = () => {
-    const pathName = usePathname()
+export default function SeparateLink({
+  className = "flex items-center gap-6",
+  onNavigate,
+}: {
+  className?: string;
+  onNavigate?: () => void;
+}) {
+  const pathName = usePathname();
 
-
-
-    return (
-        <div>
-            {
-                navItems.map(({ name, href }) => (
-                    <Link
-                        key={href}
-                        href={href}
-                        className={`${href === pathName ? "underline " : ""}text-gray-800 text-sm font-semibold hover:text-purple-600 mr-4`}
-                    >
-                        {name}
-                    </Link>
-                ))
-            }
-
-        </div>
-    );
+  return (
+    <div className={className}>
+      {navItems.map(({ name, href }) => {
+        const active = href === "/" ? pathName === "/" : pathName.startsWith(href);
+        return (
+          <Link
+            key={href}
+            href={href}
+            onClick={onNavigate}
+            className={`text-sm tracking-wide transition ${
+              active ? "font-semibold text-ink" : "text-muted hover:text-ink"
+            }`}
+          >
+            {name}
+          </Link>
+        );
+      })}
+    </div>
+  );
 }
-
-export default SeparateLink;
